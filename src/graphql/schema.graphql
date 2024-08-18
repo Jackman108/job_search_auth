@@ -1,0 +1,30 @@
+# src/auth/schema.graphql
+
+type User {
+  id: String!
+  email: String!
+  password: String
+  provider: Provider
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  roles: [Role!]!
+  tokens: [Token!]!
+  isBlocked: Boolean!
+}
+
+type Token {
+  token: String!
+  exp: DateTime!
+  user: User!
+  userAgent: String!
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Provider {
+  GOOGLE
+  YANDEX
+}

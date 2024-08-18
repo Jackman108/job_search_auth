@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password  String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  roles     Role[]
+  provider  Provider?
+  isBlocked Boolean   @default(false) @map("is_blocked")
+  Token     Token[]
+
+  @@map("users")
+}
+
+model Token {
+  token     String   @unique
+  exp       DateTime
+  userId    String
+  userAgent String   @map("user_agent")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("tokens")
+}
+
+model Vacancy {
+  id            BigInt   @id @default(autoincrement()) @map("id")
+  titleVacancy  String   @map("title_vacancy")
+  urlVacancy    String   @map("url_vacancy")
+  titleCompany  String   @map("title_company")
+  urlCompany    String   @map("url_company")
+  vacancyStatus String   @map("vacancy_status")
+  responseDate  DateTime @map("response_date")
+
+  @@map("vacancies")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Provider {
+  GOOGLE
+  YANDEX
+}
