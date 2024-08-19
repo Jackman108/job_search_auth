@@ -17,18 +17,34 @@ model User {
   provider  Provider?
   isBlocked Boolean   @default(false) @map("is_blocked")
   Token     Token[]
+  profile   Profile?
+
+  // Связь с Vacancy
+  vacancies Vacancy[]
 
   @@map("users")
 }
 
-model Token {
-  token     String   @unique
-  exp       DateTime
-  userId    String
-  userAgent String   @map("user_agent")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Profile {
+  id                        Int       @id @default(autoincrement())
+  firstName                 String
+  lastName                  String
+  avatar                    String?
+  balance                   Float     @default(0.0)
+  spinCount                 Int       @default(0)
+  successfulResponsesCount  Int       @default(0)
+  currentStatus             String
+  resumes                   Resume[]
+  messages                  Message[]
+  userId                    String    @unique
+  user                      User      @relation(fields: [userId], references: [id])
 
-  @@map("tokens")
+  // Связь с Vacancy
+  vacancies                 Vacancy[]
+
+  updatedAt                 DateTime  @updatedAt @map("updated_at")
+
+  @@map("profiles")
 }
 
 model Vacancy {
@@ -40,7 +56,51 @@ model Vacancy {
   vacancyStatus String   @map("vacancy_status")
   responseDate  DateTime @map("response_date")
 
+  // Связь с User
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+
+  // Связь с Profile
+  profileId     Int
+  profile       Profile  @relation(fields: [profileId], references: [id])
+
   @@map("vacancies")
+}
+
+model Resume {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  status      String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  profileId   Int
+  profile     Profile  @relation(fields: [profileId], references: [id])
+
+  @@map("resumes")
+}
+
+model Message {
+  id          Int      @id @default(autoincrement())
+  senderId    Int
+  receiverId  Int
+  content     String
+  createdAt   DateTime @default(now()) @map("created_at")
+  read        Boolean  @default(false)
+  profileId   Int
+  profile     Profile  @relation(fields: [profileId], references: [id])
+
+  @@map("messages")
+}
+
+model Token {
+  token     String   @unique
+  exp       DateTime
+  userId    String
+  userAgent String   @map("user_agent")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("tokens")
 }
 
 enum Role {
