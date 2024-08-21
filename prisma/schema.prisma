@@ -17,9 +17,8 @@ model User {
   provider  Provider?
   isBlocked Boolean   @default(false) @map("is_blocked")
   Token     Token[]
-  profile   Profile?
-
-  // Связь с Vacancy
+  profile   Profile? @relation(fields: [profileId], references: [id])
+  profileId Int?      @unique
   vacancies Vacancy[]
 
   @@map("users")
@@ -37,11 +36,8 @@ model Profile {
   resumes                   Resume[]
   messages                  Message[]
   userId                    String    @unique
-  user                      User      @relation(fields: [userId], references: [id])
-
-  // Связь с Vacancy
+  user                      User?
   vacancies                 Vacancy[]
-
   updatedAt                 DateTime  @updatedAt @map("updated_at")
 
   @@map("profiles")
@@ -55,12 +51,8 @@ model Vacancy {
   urlCompany    String   @map("url_company")
   vacancyStatus String   @map("vacancy_status")
   responseDate  DateTime @map("response_date")
-
-  // Связь с User
   userId        String
   user          User     @relation(fields: [userId], references: [id])
-
-  // Связь с Profile
   profileId     Int
   profile       Profile  @relation(fields: [profileId], references: [id])
 
