@@ -19,7 +19,7 @@ export class UserResponse implements User {
 
     updatedAt: Date;
     roles: Role[];
-
+    
     constructor(user: User) {
         Object.assign(this, user);
     }
