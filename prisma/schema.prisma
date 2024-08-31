@@ -17,6 +17,7 @@ model User {
   provider  Provider?
   isBlocked Boolean   @default(false) @map("is_blocked")
   Token     Token[]
+  Resumes   Resume[]
 
   @@map("users")
 }
@@ -34,6 +35,59 @@ model Profile {
   updatedAt                DateTime @updatedAt @map("updated_at")
 
   @@map("profiles")
+}
+
+model Resume {
+  id                    Int              @id @default(autoincrement())
+  userId                String           @map("user_id")
+  fullName              String           @map("full_name")
+  position              String?
+  employmentType        String?          @map("employment_type")
+  workSchedule          String?          @map("work_schedule")
+  travelTime            String?          @map("travel_time")
+  businessTripReadiness Boolean          @map("business_trip_readiness")
+  createdAt             DateTime         @default(now()) @map("created_at")
+  updatedAt             DateTime         @updatedAt @map("updated_at")
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contacts              Contact[] 
+  workExperience        WorkExperience[] 
+  skills                Skill[] 
+
+  @@map("resumes")
+}
+
+model Contact {
+  id           Int     @id @default(autoincrement())
+  resumeId     Int     @map("resume_id")
+  phone        String?
+  email        String?
+  personalSite String? @map("personal_site")
+  resume       Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@map("contacts")
+}
+
+model WorkExperience {
+  id          Int       @id @default(autoincrement())
+  resumeId    Int       @map("resume_id")
+  companyName String    @map("company_name")
+  position    String
+  startDate   DateTime  @map("start_date")
+  endDate     DateTime? @map("end_date")
+  description String?
+  resume      Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@map("work_experience")
+}
+
+model Skill {
+  id               Int     @id @default(autoincrement())
+  resumeId         Int     @map("resume_id")
+  skillName        String  @map("skill_name")
+  proficiencyLevel String? @map("proficiency_level")
+  resume           Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@map("skills")
 }
 
 model Token {
