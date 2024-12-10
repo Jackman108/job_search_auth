@@ -19,6 +19,7 @@ import { Tokens } from './interfaces';
 @Injectable()
 export class AuthService {
     private readonly logger = new Logger(AuthService.name);
+
     constructor(
         private readonly userService: UserService,
         private readonly jwtService: JwtService,
@@ -78,14 +79,14 @@ export class AuthService {
                 userAgent: agent,
             },
         });
-    
+
         if (existingToken) {
             return this.updateToken(existingToken.token);
         } else {
             return this.createToken(userId, agent);
         }
     }
-    
+
     private async updateToken(token: string): Promise<Token> {
         return this.prismaService.token.update({
             where: { token },
@@ -95,7 +96,7 @@ export class AuthService {
             },
         });
     }
-    
+
     private async createToken(userId: string, agent: string): Promise<Token> {
         return this.prismaService.token.create({
             data: {

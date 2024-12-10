@@ -16,6 +16,11 @@ export class UserService {
         private readonly configService: ConfigService,
     ) {}
 
+    private isValidUuid(uuid: string): boolean {
+        const regex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+        return regex.test(uuid);
+    }
+
     async save(user: Partial<User>) {
         const hashedPassword = user?.password ? this.hashPassword(user.password) : null;
         const savedUser = await this.prismaService.user.upsert({
@@ -35,7 +40,7 @@ export class UserService {
                 roles: ['USER'],
             },
         });
-        await this.cacheManager.set(savedUser.id, savedUser);
+        await this.cacheManager.set(savedUser.id.toString(), savedUser);
         await this.cacheManager.set(savedUser.email, savedUser);
         return savedUser;
     }
@@ -46,11 +51,21 @@ export class UserService {
         }
         const user = await this.cacheManager.get<User>(idOrEmail);
         if (!user) {
-            const user = await this.prismaService.user.findFirst({
-                where: {
-                    OR: [{ id: idOrEmail }, { email: idOrEmail }],
-                },
-            });
+            let user;
+            if (this.isValidUuid(idOrEmail)) {
+                user = await this.prismaService.user.findFirst({
+                    where: {
+                        id: idOrEmail,
+                    },
+                });
+            } else {
+                user = await this.prismaService.user.findFirst({
+                    where: {
+                        email: idOrEmail,
+                    },
+                });
+            }
+
             if (!user) {
                 return null;
             }
