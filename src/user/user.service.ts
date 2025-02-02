@@ -62,6 +62,14 @@ export class UserService {
         return user;
     }
 
+    async findById(id: string, isReset = false): Promise<User> {
+        return this.findOne(id, isReset);
+    }
+
+    async findByEmail(email: string, isReset = false): Promise<User> {
+        return this.findOne(email, isReset);
+    }
+
     async delete(id: string, user: JwtPayload) {
         if (user.id !== id && !user.roles.includes(Role.ADMIN)) {
             throw new ForbiddenException();

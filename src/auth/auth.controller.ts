@@ -42,32 +42,37 @@ export class AuthController {
 
     @UseInterceptors(ClassSerializerInterceptor)
     @Post('register')
-    async register(@Body() dto: RegisterDto) {
+    async register(@Body() dto: RegisterDto, @Req() req: Request) {
         const user = await this.authService.register(dto);
         if (!user) {
             throw new BadRequestException(
                 `Не получается зарегистрировать пользователя с данными ${JSON.stringify(dto)}`,
             );
         }
+        await this.authService.saveSession(req, user);
         return new UserResponse(user);
     }
 
     @Post('login')
-    async login(@Body() dto: LoginDto, @Res() res: Response, @UserAgent() agent: string) {
-        const tokens = await this.authService.login(dto, agent);
+    async login(@Body() dto: LoginDto, @Req() req: Request, @Res() res: Response, @UserAgent() agent: string) {
+        const { tokens, user } = await this.authService.login(dto, agent);
         if (!tokens) {
             throw new BadRequestException(`Не получается войти с данными ${JSON.stringify(dto)}`);
         }
+        await this.authService.saveSession(req, user);
         this.setRefreshTokenToCookies(tokens, res);
     }
 
     @Get('logout')
-    async logout(@Cookie(REFRESH_TOKEN) refreshToken: string, @Res() res: Response) {
-        if (!refreshToken) {
-            res.sendStatus(HttpStatus.OK);
-            return;
+    async logout(
+        @Cookie(REFRESH_TOKEN) refreshToken: string,
+        @Res({ passthrough: true }) res: Response,
+        @Req() req: Request,
+    ) {
+        if (refreshToken) {
+            await this.tokenService.deleteRefreshToken(refreshToken);
         }
-        await this.tokenService.deleteRefreshToken(refreshToken);
+        await this.authService.destroySession(req, res);
         res.cookie(REFRESH_TOKEN, '', { httpOnly: true, secure: true, expires: new Date() });
         res.sendStatus(HttpStatus.OK);
     }

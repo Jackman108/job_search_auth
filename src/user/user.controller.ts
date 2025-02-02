@@ -14,10 +14,19 @@ import {
 import { User } from '@prisma/client';
 import { UserResponse } from './responses';
 import { UserService } from './user.service';
+import { Authorization } from '@common/decorators/auth.decorator';
+import { Authorized } from '@common/decorators/authorized.decorator';
 
 @Controller('user')
 export class UserController {
     constructor(private readonly userService: UserService) {}
+
+    @Authorization()
+    @Get('account')
+    public async findAccount(@Authorized('id') userId: string) {
+        return this.userService.findById(userId);
+    }
+
     @UseInterceptors(ClassSerializerInterceptor)
     @Get(':idOrEmail')
     async findOneUser(@Param('idOrEmail') idOrEmail: string) {
