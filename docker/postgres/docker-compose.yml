@@ -32,6 +32,20 @@ services:
       - container-network
     restart: unless-stopped
 
+  redis:
+    container_name: redis_container
+    image: redis:latest
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    command: redis-server --requirepass "${REDIS_PASSWORD}"
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - container-network
+    volumes:
+      - redis_data:/data
+    restart: always
+
 networks:
   container-network:
     driver: bridge
@@ -39,3 +53,4 @@ networks:
 volumes:
   postgres:
   pgadmin:
+  redis_data:

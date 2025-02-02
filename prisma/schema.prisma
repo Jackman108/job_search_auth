@@ -8,18 +8,81 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
-  password  String?
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  roles     Role[]
-  provider  Provider?
-  isBlocked Boolean   @default(false) @map("is_blocked")
-  Token     Token[]
-  Resumes   Resume[]
+  id String @id @default(uuid())
+
+  email    String  @unique
+  password String?
+
+  displayName String?  @map("display_name")
+  picture     String?
+
+  roles Role[]
+
+  isVerified  Boolean @default(false) @map("is_verified")
+  isTwoFactor Boolean @default(false) @map("is_two_factor")
+
+  method    AuthMethod
+  accounts  Account[]
+  isBlocked Boolean    @default(false) @map("is_blocked")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  Token   Token[]
+  Resumes Resume[]
+
+  Profile Profile?
 
   @@map("users")
+}
+
+model Account {
+  id       String @id @default(uuid())
+  type     String
+  provider String
+
+  refreshToken String? @map("refresh_token")
+  accessToken  String? @map("access_token")
+  expiresAt    Int     @map("expires_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String? @map("user_id")
+
+  @@map("accounts")
+}
+
+model Token {
+  id        String    @id @default(uuid())
+  token     String    @unique
+  type      TokenType
+  expiresIn DateTime  @map("expires_in")
+
+  userAgent String  @map("user_agent")
+  user      User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String? @map("user_id")
+
+  @@map("tokens")
+}
+
+enum Role {
+  ADMIN
+  USER
+  OWNER
+}
+
+enum AuthMethod {
+  CREDENTIALS
+  GOOGLE
+  YANDEX
+}
+
+enum TokenType {
+  VERIFICATION
+  TWO_FACTOR
+  PASSWORD_RESET
 }
 
 model Profile {
@@ -33,6 +96,8 @@ model Profile {
   currentStatus            String   @map("current_status")
   userId                   String   @unique @map("user_id")
   updatedAt                DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
 
   @@map("profiles")
 }
@@ -49,9 +114,9 @@ model Resume {
   createdAt             DateTime         @default(now()) @map("created_at")
   updatedAt             DateTime         @updatedAt @map("updated_at")
   user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  contacts              Contact[] 
-  workExperience        WorkExperience[] 
-  skills                Skill[] 
+  contacts              Contact[]
+  workExperience        WorkExperience[]
+  skills                Skill[]
 
   @@map("resumes")
 }
@@ -88,24 +153,4 @@ model Skill {
   resume           Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   @@map("skills")
-}
-
-model Token {
-  token     String   @unique
-  exp       DateTime
-  userId    String
-  userAgent String   @map("user_agent")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("tokens")
-}
-
-enum Role {
-  ADMIN
-  USER
-}
-
-enum Provider {
-  GOOGLE
-  YANDEX
 }

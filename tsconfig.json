@@ -41,6 +41,12 @@
       ],
       "@auth/*": [
         "src/auth/*"
+      ],
+      "@session": [
+        "src/session"
+      ],
+      "@session/*": [
+        "src/session/*"
       ]
     }
   }

@@ -6,12 +6,12 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { options } from './config';
 import { GUARDS } from './guards';
-import { STRTAGIES } from './strategies';
+import { STRATEGIES } from './strategies';
 import { HttpModule } from '@nestjs/axios';
 
 @Module({
     controllers: [AuthController],
-    providers: [AuthService, ...STRTAGIES, ...GUARDS],
+    providers: [AuthService, ...STRATEGIES, ...GUARDS],
     imports: [PassportModule, JwtModule.registerAsync(options()), UserModule, HttpModule],
 })
 export class AuthModule {}
