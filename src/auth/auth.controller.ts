@@ -18,7 +18,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { UserResponse } from '@user/responses';
 import { Request, Response } from 'express';
-import { map, mergeMap, tap } from 'rxjs';
+import { map, mergeMap } from 'rxjs';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto';
 import { GoogleGuard } from './guards/google.guard';
@@ -26,6 +26,7 @@ import { Tokens } from './interfaces';
 import { handleTimeoutAndErrors } from '@common/helpers';
 import { YandexGuard } from './guards/yandex.guard';
 import { Provider } from '@prisma/client';
+import { TokenService } from '@auth/token.service';
 
 const REFRESH_TOKEN = 'refreshtoken';
 
@@ -36,6 +37,7 @@ export class AuthController {
         private readonly authService: AuthService,
         private readonly configService: ConfigService,
         private readonly httpService: HttpService,
+        private readonly tokenService: TokenService,
     ) {}
 
     @UseInterceptors(ClassSerializerInterceptor)
@@ -65,27 +67,19 @@ export class AuthController {
             res.sendStatus(HttpStatus.OK);
             return;
         }
-        await this.authService.deleteRefreshToken(refreshToken);
+        await this.tokenService.deleteRefreshToken(refreshToken);
         res.cookie(REFRESH_TOKEN, '', { httpOnly: true, secure: true, expires: new Date() });
         res.sendStatus(HttpStatus.OK);
     }
 
     @Get('refresh-tokens')
     async refreshTokens(@Cookie(REFRESH_TOKEN) refreshToken: string, @Res() res: Response, @UserAgent() agent: string) {
-        if (!refreshToken) {
-            throw new UnauthorizedException();
-        }
+        if (!refreshToken) throw new UnauthorizedException();
         const tokens = await this.authService.refreshTokens(refreshToken, agent);
-        if (!tokens) {
-            throw new UnauthorizedException();
-        }
         this.setRefreshTokenToCookies(tokens, res);
     }
 
     private setRefreshTokenToCookies(tokens: Tokens, res: Response) {
-        if (!tokens) {
-            throw new UnauthorizedException();
-        }
         res.cookie(REFRESH_TOKEN, tokens.refreshToken.token, {
             httpOnly: true,
             sameSite: 'lax',

@@ -1,11 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
+    const config = app.get(ConfigService);
     app.enableCors({
-        origin: ['http://localhost:3000'],
+        origin: config.getOrThrow<string>('ALLOWED_ORIGIN'),
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
@@ -13,6 +15,9 @@ async function bootstrap() {
     app.use(cookieParser());
     app.setGlobalPrefix('api');
     app.useGlobalInterceptors();
-    await app.listen(8001);
+    await app.listen(config.getOrThrow<number>('APP_PORT'));
 }
-bootstrap();
+bootstrap().catch((err) => {
+    console.error('Ошибка при запуске сервера:', err);
+    process.exit(1);
+});

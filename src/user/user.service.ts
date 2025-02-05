@@ -49,29 +49,16 @@ export class UserService {
         if (isReset) {
             await this.cacheManager.del(idOrEmail);
         }
-        const user = await this.cacheManager.get<User>(idOrEmail);
-        if (!user) {
-            let user;
-            if (this.isValidUuid(idOrEmail)) {
-                user = await this.prismaService.user.findFirst({
-                    where: {
-                        id: idOrEmail,
-                    },
-                });
-            } else {
-                user = await this.prismaService.user.findFirst({
-                    where: {
-                        email: idOrEmail,
-                    },
-                });
-            }
+        const cachedUser: User = await this.cacheManager.get<User>(idOrEmail);
+        if (cachedUser) return cachedUser;
 
-            if (!user) {
-                return null;
-            }
-            await this.cacheManager.set(idOrEmail, user, convertToSecondsUtil(this.configService.get('JWT_EXP')));
-            return user;
-        }
+        const user = this.isValidUuid(idOrEmail)
+            ? await this.prismaService.user.findFirst({ where: { id: idOrEmail } })
+            : await this.prismaService.user.findFirst({ where: { email: idOrEmail } });
+
+        if (!user) return null;
+
+        await this.cacheManager.set(idOrEmail, user, convertToSecondsUtil(this.configService.get('JWT_EXP')));
         return user;
     }
 

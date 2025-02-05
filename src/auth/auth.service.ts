@@ -6,15 +6,14 @@ import {
     Logger,
     UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { Provider, Token, User } from '@prisma/client';
+import { Provider, User } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import { UserService } from '@user/user.service';
 import { compareSync } from 'bcrypt';
-import { add } from 'date-fns';
-import { v4 } from 'uuid';
+
 import { LoginDto, RegisterDto } from './dto';
 import { Tokens } from './interfaces';
+import { TokenService } from '@auth/token.service';
 
 @Injectable()
 export class AuthService {
@@ -22,18 +21,9 @@ export class AuthService {
 
     constructor(
         private readonly userService: UserService,
-        private readonly jwtService: JwtService,
         private readonly prismaService: PrismaService,
+        private readonly tokenService: TokenService,
     ) {}
-
-    async refreshTokens(refreshToken: string, agent: string): Promise<Tokens> {
-        const token = await this.prismaService.token.delete({ where: { token: refreshToken } });
-        if (!token || new Date(token.exp) < new Date()) {
-            throw new UnauthorizedException();
-        }
-        const user = await this.userService.findOne(token.userId);
-        return this.generateTokens(user, agent);
-    }
 
     async register(dto: RegisterDto) {
         const user: User = await this.userService.findOne(dto.email).catch((err) => {
@@ -57,59 +47,20 @@ export class AuthService {
         if (!user || !compareSync(dto.password, user.password)) {
             throw new UnauthorizedException('Не верный логин или пароль');
         }
-        return this.generateTokens(user, agent);
+        return this.tokenService.generateTokens(user, agent);
     }
 
-    private async generateTokens(user: User, agent: string): Promise<Tokens> {
-        const accessToken =
-            'Bearer ' +
-            this.jwtService.sign({
-                id: user.id,
-                email: user.email,
-                roles: user.roles,
-            });
-        const refreshToken = await this.getRefreshToken(user.id, agent);
-        return { accessToken, refreshToken };
-    }
+    async refreshTokens(refreshToken: string, agent: string): Promise<Tokens> {
+        const token = await this.prismaService.token.findUnique({ where: { token: refreshToken } });
 
-    private async getRefreshToken(userId: string, agent: string): Promise<Token> {
-        const existingToken = await this.prismaService.token.findFirst({
-            where: {
-                userId,
-                userAgent: agent,
-            },
-        });
-
-        if (existingToken) {
-            return this.updateToken(existingToken.token);
-        } else {
-            return this.createToken(userId, agent);
+        if (!token || new Date(token.exp) < new Date()) {
+            throw new UnauthorizedException();
         }
-    }
 
-    private async updateToken(token: string): Promise<Token> {
-        return this.prismaService.token.update({
-            where: { token },
-            data: {
-                token: v4(),
-                exp: add(new Date(), { months: 1 }),
-            },
-        });
-    }
+        await this.prismaService.token.delete({ where: { token: refreshToken } });
 
-    private async createToken(userId: string, agent: string): Promise<Token> {
-        return this.prismaService.token.create({
-            data: {
-                token: v4(),
-                exp: add(new Date(), { months: 1 }),
-                userId,
-                userAgent: agent,
-            },
-        });
-    }
-
-    deleteRefreshToken(token: string) {
-        return this.prismaService.token.delete({ where: { token } });
+        const user = await this.userService.findOne(token.userId);
+        return this.tokenService.generateTokens(user, agent);
     }
 
     async providerAuth(email: string, agent: string, provider: Provider) {
@@ -119,7 +70,7 @@ export class AuthService {
                 this.logger.error(err);
                 return null;
             });
-            return this.generateTokens(user, agent);
+            return this.tokenService.generateTokens(user, agent);
         }
         const user = await this.userService.save({ email, provider }).catch((err) => {
             this.logger.error(err);
@@ -127,10 +78,10 @@ export class AuthService {
         });
         if (!user) {
             throw new HttpException(
-                `Не получилось создать пользователя с email ${email} в Google auth`,
+                `Не получилось создать пользователя с email ${email} в Oauth`,
                 HttpStatus.BAD_REQUEST,
             );
         }
-        return this.generateTokens(user, agent);
+        return this.tokenService.generateTokens(user, agent);
     }
 }

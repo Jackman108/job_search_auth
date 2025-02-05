@@ -30,9 +30,10 @@ export class UserController {
         return this.userService.delete(id, user);
     }
 
+    @UseInterceptors(ClassSerializerInterceptor)
     @Get()
-    me(@CurrentUser() user: JwtPayload) {
-        return user;
+    async getCurrentUser(@CurrentUser() user: JwtPayload): Promise<UserResponse> {
+        return new UserResponse(await this.userService.findOne(user.id));
     }
 
     @UseInterceptors(ClassSerializerInterceptor)
