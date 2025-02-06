@@ -6,9 +6,5 @@ import { TokenResolver } from './token.resolver';
 
 @Resolver()
 export class GraphQLResolver {
-  constructor(
-    private readonly userResolver: UserResolver,
-    private readonly tokenResolver: TokenResolver,
-  ) {}
+    constructor(private readonly userResolver: UserResolver, private readonly tokenResolver: TokenResolver) {}
 }
-

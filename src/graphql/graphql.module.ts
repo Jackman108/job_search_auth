@@ -8,12 +8,12 @@ import { GraphQLResolver } from './resolvers/graphql.resolver';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 
 @Module({
-  imports: [
-    NestGraphQLModule.forRoot<ApolloDriverConfig>({
-        driver: ApolloDriver,
-        autoSchemaFile: 'schema.graphql',
-      }),
-  ],
-  providers: [UserResolver, TokenResolver, GraphQLResolver],
+    imports: [
+        NestGraphQLModule.forRoot<ApolloDriverConfig>({
+            driver: ApolloDriver,
+            autoSchemaFile: 'schema.graphql',
+        }),
+    ],
+    providers: [UserResolver, TokenResolver, GraphQLResolver],
 })
 export class GraphQLModule {}
