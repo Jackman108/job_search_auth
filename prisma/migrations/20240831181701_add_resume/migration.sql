@@ -7,7 +7,7 @@ CREATE TABLE "resumes" (
     "employment_type" TEXT,
     "work_schedule" TEXT,
     "travel_time" TEXT,
-    "business_trip_readiness" BOOLEAN NOT NULL,
+    "business_trip_readiness" BOOLEAN,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -21,6 +21,8 @@ CREATE TABLE "contacts" (
     "phone" TEXT,
     "email" TEXT,
     "personal_site" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "contacts_pkey" PRIMARY KEY ("id")
 );
@@ -59,3 +61,5 @@ ALTER TABLE "work_experience" ADD CONSTRAINT "work_experience_resume_id_fkey" FO
 
 -- AddForeignKey
 ALTER TABLE "skills" ADD CONSTRAINT "skills_resume_id_fkey" FOREIGN KEY ("resume_id") REFERENCES "resumes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+CREATE INDEX "idx_resume_user_id" ON "resumes"("user_id");

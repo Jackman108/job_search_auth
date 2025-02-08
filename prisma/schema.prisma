@@ -45,7 +45,7 @@ model Resume {
   employmentType        String?          @map("employment_type")
   workSchedule          String?          @map("work_schedule")
   travelTime            String?          @map("travel_time")
-  businessTripReadiness Boolean          @map("business_trip_readiness")
+  businessTripReadiness Boolean?          @map("business_trip_readiness")
   createdAt             DateTime         @default(now()) @map("created_at")
   updatedAt             DateTime         @updatedAt @map("updated_at")
   user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -57,12 +57,14 @@ model Resume {
 }
 
 model Contact {
-  id           Int     @id @default(autoincrement())
-  resumeId     Int     @map("resume_id")
+  id           Int      @id @default(autoincrement())
+  resumeId     Int      @map("resume_id")
   phone        String?
   email        String?
-  personalSite String? @map("personal_site")
-  resume       Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  personalSite String?  @map("personal_site")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  resume       Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   @@map("contacts")
 }
