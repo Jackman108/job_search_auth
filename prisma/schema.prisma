@@ -16,8 +16,13 @@ model User {
   roles     Role[]
   provider  Provider?
   isBlocked Boolean   @default(false) @map("is_blocked")
+  Profile   Profile?
+  VacancyAuth VacancyAuth[]
+  VacancySubmit VacancySubmit[]
   Token     Token[]
   Resumes   Resume[]
+  Payments  Payment[]
+  Subscriptions Subscription[]
 
   @@map("users")
 }
@@ -131,6 +136,33 @@ model VacancySubmit {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("vacancy_submit")
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  amount        Float
+  paymentStatus String   @default("pending") @map("payment_status")
+  paymentMethod String?  @map("payment_method")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model Subscription {
+  id                String   @id @default(uuid())
+  userId            String   @map("user_id")
+  subscriptionType  String   @map("subscription_type")
+  price             Float
+  startDate         DateTime @map("start_date")
+  endDate           DateTime @map("end_date")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
 }
 
 enum Role {
