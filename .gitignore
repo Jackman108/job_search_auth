@@ -35,5 +35,11 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 .env
+.env.*
+!.env.example
+secrets.ts
+secrets.js
+**/secrets.ts
+**/secrets.js
 .vscode
 Dockerfile
