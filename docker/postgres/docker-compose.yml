@@ -1,5 +1,10 @@
 # Auth Postgres + Redis for Market Hunter (dev).
 # Usage from auth/: yarn docker:up
+#
+# Host ports must NOT collide with backend:
+#   backend Postgres → 5432 (backend/postgres/docker-compose.yml)
+#   auth Postgres    → 5433 (this file)
+#   auth Redis       → 6379
 services:
   postgres:
     container_name: auth_postgres
@@ -12,7 +17,7 @@ services:
       - auth_postgres_data:/var/lib/postgresql/data
       - ./postgres/install-uuid.sql:/docker-entrypoint-initdb.d/01-install-uuid.sql:ro
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "${DB_PORT:-5433}:5432"
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-db_test}"]
