@@ -29,7 +29,8 @@ NestJS · Prisma · JWT · Google/Yandex OAuth · GraphQL (Apollo) · PostgreSQL
 | Сервис | Порт |
 |--------|------|
 | Auth API | `APP_PORT` → **8001** |
-| Auth Postgres | см. `docker:up` / свой `DATABASE_URL` |
+| Auth Postgres | **5433** → `db_test` (`yarn docker:up`) |
+| Auth Redis | **6379** (sessions) |
 | Client | 3000 |
 | Backend API / WS | 8000 / 8080 |
 
@@ -44,11 +45,14 @@ yarn prisma generate
 yarn start:dev
 ```
 
-DB (compose в `docker/postgres`, образ `postgres:16-alpine`):
+DB + Redis (compose в `docker/postgres`): Postgres **5433**, Redis **6379**.
+Не занимает backend-порт **5432**.
 
 ```bash
 yarn docker:up
-# DATABASE_URL=postgresql://postgres:123456@localhost:5432/db_test?schema=public
+# DATABASE_URL=postgresql://postgres:123456@localhost:5433/db_test?schema=public
+# REDIS_URI=redis://localhost:6379
+yarn prisma migrate deploy   # или migrate dev — на чистой db_test
 ```
 
 ## Scripts

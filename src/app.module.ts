@@ -6,8 +6,17 @@ import { AuthModule } from '@auth/auth.module';
 import { PrismaModule } from '@prisma/prisma.module';
 import { UserModule } from '@user/user.module';
 import { GraphQLModule } from './graphql/graphql.module';
+import { SessionModule } from '@session/session.module';
+
 @Module({
-    imports: [UserModule, PrismaModule, AuthModule, GraphQLModule, ConfigModule.forRoot({ isGlobal: true })],
+    imports: [
+        UserModule,
+        PrismaModule,
+        AuthModule,
+        GraphQLModule,
+        SessionModule,
+        ConfigModule.forRoot({ isGlobal: true }),
+    ],
     providers: [
         {
             provide: APP_GUARD,
