@@ -1,0 +1,24 @@
+# Auth Postgres for Market Hunter (dev).
+# Usage from auth/: yarn docker:up
+services:
+  postgres:
+    container_name: auth_postgres
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456}
+      POSTGRES_DB: ${POSTGRES_DB:-db_test}
+    volumes:
+      - auth_postgres_data:/var/lib/postgresql/data
+      - ./postgres/install-uuid.sql:/docker-entrypoint-initdb.d/01-install-uuid.sql:ro
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-db_test}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  auth_postgres_data:

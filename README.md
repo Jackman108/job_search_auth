@@ -44,10 +44,11 @@ yarn prisma generate
 yarn start:dev
 ```
 
-DB (если есть compose в `docker/postgres` — иначе поднять Postgres вручную и прописать `DATABASE_URL`):
+DB (compose в `docker/postgres`, образ `postgres:16-alpine`):
 
 ```bash
 yarn docker:up
+# DATABASE_URL=postgresql://postgres:123456@localhost:5432/db_test?schema=public
 ```
 
 ## Scripts
