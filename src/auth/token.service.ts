@@ -55,4 +55,12 @@ export class TokenService {
     async deleteRefreshToken(token: string) {
         return this.prismaService.token.delete({ where: { token } });
     }
+
+    /** Removes expired refresh rows; uses `tokens_exp_idx` for the range delete. */
+    async deleteExpiredTokens(): Promise<number> {
+        const result = await this.prismaService.token.deleteMany({
+            where: { exp: { lt: new Date() } },
+        });
+        return result.count;
+    }
 }
