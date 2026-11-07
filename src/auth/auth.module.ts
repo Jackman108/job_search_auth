@@ -9,10 +9,11 @@ import { GUARDS } from './guards';
 import { STRATEGIES } from './strategies';
 import { HttpModule } from '@nestjs/axios';
 import { TokenService } from '@auth/token.service';
+import { TokenCleanupService } from '@auth/token-cleanup.service';
 
 @Module({
     controllers: [AuthController],
-    providers: [AuthService, TokenService, ...STRATEGIES, ...GUARDS],
+    providers: [AuthService, TokenService, TokenCleanupService, ...STRATEGIES, ...GUARDS],
     imports: [PassportModule, JwtModule.registerAsync(options()), UserModule, HttpModule],
 })
 export class AuthModule {}
