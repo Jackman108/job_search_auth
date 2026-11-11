@@ -41,13 +41,12 @@ export class TokenService {
     }
 
     async generateTokens(user: User, agent: string): Promise<Tokens> {
-        const accessToken =
-            'Bearer ' +
-            this.jwtService.sign({
-                id: user.id,
-                email: user.email,
-                roles: user.roles,
-            });
+        // Raw JWT only — callers add the `Bearer ` scheme when setting Authorization.
+        const accessToken = this.jwtService.sign({
+            id: user.id,
+            email: user.email,
+            roles: user.roles,
+        });
         const refreshToken = await this.getOrCreateRefreshToken(user.id, agent);
         return { accessToken, refreshToken };
     }
