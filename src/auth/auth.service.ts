@@ -37,10 +37,12 @@ export class AuthService {
         if (user) {
             throw new ConflictException('Пользователь с таким email уже зарегистрирован');
         }
-        return this.userService.save(dto).catch((err) => {
+        try {
+            return await this.userService.save(dto);
+        } catch (err) {
             this.logger.error(err);
-            return null;
-        });
+            throw new InternalServerErrorException('Не удалось создать пользователя');
+        }
     }
 
     async login(dto: LoginDto, agent: string): Promise<{ tokens: Tokens; user: User }> {
