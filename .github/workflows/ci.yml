@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   lint-typecheck:
-    name: lint · typecheck
+    name: lint · format · typecheck
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -32,10 +32,11 @@ jobs:
       - name: Prisma generate
         run: yarn prisma generate
 
-      # Matches backend A8 gates that currently pass green.
-      # format:check deferred — ~53 files fail Prettier today (separate pass).
       - name: Lint
         run: yarn lint
+
+      - name: Format check
+        run: yarn format:check
 
       - name: Typecheck
         run: yarn typecheck
