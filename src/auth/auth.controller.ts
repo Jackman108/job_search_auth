@@ -16,6 +16,7 @@ import {
     UseInterceptors,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ApiBody, ApiCookieAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserResponse } from '@user/responses';
 import { Request, Response } from 'express';
 import { map, mergeMap } from 'rxjs';
@@ -30,6 +31,7 @@ import { TokenService } from '@auth/token.service';
 
 const REFRESH_TOKEN = 'refreshtoken';
 
+@ApiTags('auth')
 @Public()
 @Controller('auth')
 export class AuthController {
@@ -40,6 +42,8 @@ export class AuthController {
         private readonly tokenService: TokenService,
     ) {}
 
+    @ApiOperation({ summary: 'Register email/password user and open session' })
+    @ApiBody({ type: RegisterDto })
     @UseInterceptors(ClassSerializerInterceptor)
     @Post('register')
     async register(@Body() dto: RegisterDto, @Req() req: Request) {
@@ -53,6 +57,9 @@ export class AuthController {
         return new UserResponse(user);
     }
 
+    @ApiOperation({ summary: 'Login; sets httpOnly refresh cookie; returns accessToken' })
+    @ApiBody({ type: LoginDto })
+    @ApiOkResponse({ description: 'JSON `{ accessToken }` + Set-Cookie refreshtoken' })
     @Post('login')
     async login(@Body() dto: LoginDto, @Req() req: Request, @Res() res: Response, @UserAgent() agent: string) {
         const { tokens, user } = await this.authService.login(dto, agent);
@@ -63,6 +70,8 @@ export class AuthController {
         this.setRefreshTokenToCookies(tokens, res);
     }
 
+    @ApiOperation({ summary: 'Logout; clears refresh cookie and session' })
+    @ApiCookieAuth('refreshtoken')
     @Get('logout')
     async logout(
         @Cookie(REFRESH_TOKEN) refreshToken: string,
@@ -77,6 +86,8 @@ export class AuthController {
         res.sendStatus(HttpStatus.OK);
     }
 
+    @ApiOperation({ summary: 'Rotate tokens using refreshtoken cookie' })
+    @ApiCookieAuth('refreshtoken')
     @Get('refresh-tokens')
     async refreshTokens(@Cookie(REFRESH_TOKEN) refreshToken: string, @Res() res: Response, @UserAgent() agent: string) {
         if (!refreshToken) throw new UnauthorizedException();

@@ -3,6 +3,7 @@ import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { SessionService } from '@session/session.service';
+import { setupSwagger } from './swagger/setupSwagger';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -17,6 +18,7 @@ async function bootstrap() {
     app.use(cookieParser());
     app.setGlobalPrefix('api');
     app.use(sessionService.createSessionMiddleware());
+    setupSwagger(app);
     await app.listen(config.getOrThrow<number>('APP_PORT'));
 }
 bootstrap().catch((err) => {
