@@ -16,11 +16,15 @@ import { UserResponse } from './responses';
 import { UserService } from './user.service';
 import { Authorization } from '@common/decorators/auth.decorator';
 import { Authorized } from '@common/decorators/authorized.decorator';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('user')
 @Controller('user')
 export class UserController {
     constructor(private readonly userService: UserService) {}
 
+    @ApiBearerAuth('access-token')
+    @ApiOperation({ summary: 'Current user account (JWT)' })
     @Authorization()
     @Get('account')
     public async findAccount(@Authorized('id') userId: string) {
