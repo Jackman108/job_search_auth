@@ -41,5 +41,11 @@ jobs:
       - name: Typecheck
         run: yarn typecheck
 
+      - name: Unit tests
+        run: yarn test --passWithNoTests
+
+      - name: Structure (≤300 lines)
+        run: yarn check:structure
+
   # Docs/OpenAPI path asserts only need Nest boot + DB/Redis — run when services available locally via yarn test:e2e.
-  # CI stays lint/format/typecheck until a dedicated compose job is added.
+  # Full e2e stays local/compose until a dedicated CI stack job is added.
