@@ -1,9 +1,5 @@
 {
-  "moduleFileExtensions": [
-    "js",
-    "json",
-    "ts"
-  ],
+  "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": ".",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
@@ -11,7 +7,11 @@
     "^.+\\.(t|j)s$": "ts-jest"
   },
   "moduleNameMapper": {
-    "@common/common/(.*)": "<rootDir>/../libs/common/src/$1",
-    "@common/common": "<rootDir>/../libs/common/src"
+    "^@common(|/.*)$": "<rootDir>/../libs/common/src$1",
+    "^@auth(|/.*)$": "<rootDir>/../src/auth$1",
+    "^@user(|/.*)$": "<rootDir>/../src/user$1",
+    "^@prisma$": "<rootDir>/../src/prisma",
+    "^@prisma/(?!client(?:/|$))(.*)$": "<rootDir>/../src/prisma/$1",
+    "^@session(|/.*)$": "<rootDir>/../src/session$1"
   }
 }

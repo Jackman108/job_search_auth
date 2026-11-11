@@ -12,5 +12,6 @@ export function setupSwagger(app: INestApplication): void {
         .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('docs', app, document);
+    // Honor global prefix so UI lives at `/api/docs` (not bare `/docs`).
+    SwaggerModule.setup('docs', app, document, { useGlobalPrefix: true });
 }
