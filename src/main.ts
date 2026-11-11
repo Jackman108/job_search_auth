@@ -4,11 +4,13 @@ import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { SessionService } from '@session/session.service';
+import { assertJwtSecret } from './config/assertJwtSecret';
 import { setupSwagger } from './swagger/setupSwagger';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     const config = app.get(ConfigService);
+    assertJwtSecret(config.get<string>('JWT_SECRET'), config.get<string>('NODE_ENV'));
     const sessionService = app.get(SessionService);
     app.enableCors({
         origin: config.getOrThrow<string>('ALLOWED_ORIGIN'),
