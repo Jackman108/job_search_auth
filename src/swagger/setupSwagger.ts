@@ -5,7 +5,11 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 export function setupSwagger(app: INestApplication): void {
     const config = new DocumentBuilder()
         .setTitle('Market Hunter Auth')
-        .setDescription('Auth + user HTTP API (GraphQL is separate). Refresh token is httpOnly cookie `refreshtoken`.')
+        .setDescription(
+            'Auth + user HTTP API (GraphQL is separate). Refresh token is httpOnly cookie `refreshtoken`. ' +
+                'OAuth: GET /auth/google|/auth/yandex → provider → callback → success-* issues accessToken + cookie. ' +
+                'Email register returns UserResponse; login/refresh/OAuth success return `{ accessToken }` (HTTP 201).',
+        )
         .setVersion('0.1.0')
         .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'access-token')
         .addCookieAuth('refreshtoken')

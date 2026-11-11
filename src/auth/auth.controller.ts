@@ -16,12 +16,21 @@ import {
     UseInterceptors,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ApiBody, ApiCookieAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+    ApiBody,
+    ApiCookieAuth,
+    ApiCreatedResponse,
+    ApiOkResponse,
+    ApiOperation,
+    ApiQuery,
+    ApiResponse,
+    ApiTags,
+} from '@nestjs/swagger';
 import { UserResponse } from '@user/responses';
 import { Request, Response } from 'express';
 import { map, mergeMap } from 'rxjs';
 import { AuthService } from './auth.service';
-import { LoginDto, RegisterDto } from './dto';
+import { AccessTokenResponseDto, LoginDto, RegisterDto, UserResponseDto } from './dto';
 import { GoogleGuard } from './guards/google.guard';
 import { Tokens } from './interfaces';
 import { handleTimeoutAndErrors } from '@common/helpers';
@@ -44,6 +53,7 @@ export class AuthController {
 
     @ApiOperation({ summary: 'Register email/password user and open session' })
     @ApiBody({ type: RegisterDto })
+    @ApiOkResponse({ description: 'Registered user (password excluded)', type: UserResponseDto })
     @UseInterceptors(ClassSerializerInterceptor)
     @Post('register')
     async register(@Body() dto: RegisterDto, @Req() req: Request) {
@@ -59,7 +69,10 @@ export class AuthController {
 
     @ApiOperation({ summary: 'Login; sets httpOnly refresh cookie; returns accessToken' })
     @ApiBody({ type: LoginDto })
-    @ApiOkResponse({ description: 'JSON `{ accessToken }` + Set-Cookie refreshtoken' })
+    @ApiCreatedResponse({
+        description: 'JSON `{ accessToken }` + Set-Cookie refreshtoken',
+        type: AccessTokenResponseDto,
+    })
     @Post('login')
     async login(@Body() dto: LoginDto, @Req() req: Request, @Res() res: Response, @UserAgent() agent: string) {
         const { tokens, user } = await this.authService.login(dto, agent);
@@ -72,6 +85,7 @@ export class AuthController {
 
     @ApiOperation({ summary: 'Logout; clears refresh cookie and session' })
     @ApiCookieAuth('refreshtoken')
+    @ApiOkResponse({ description: 'Logged out (empty body, HTTP 200)' })
     @Get('logout')
     async logout(
         @Cookie(REFRESH_TOKEN) refreshToken: string,
@@ -88,6 +102,10 @@ export class AuthController {
 
     @ApiOperation({ summary: 'Rotate tokens using refreshtoken cookie' })
     @ApiCookieAuth('refreshtoken')
+    @ApiCreatedResponse({
+        description: 'Rotated access token + refreshed cookie',
+        type: AccessTokenResponseDto,
+    })
     @Get('refresh-tokens')
     async refreshTokens(@Cookie(REFRESH_TOKEN) refreshToken: string, @Res() res: Response, @UserAgent() agent: string) {
         if (!refreshToken) throw new UnauthorizedException();
@@ -106,11 +124,18 @@ export class AuthController {
         res.status(HttpStatus.CREATED).json({ accessToken: tokens.accessToken });
     }
 
+    @ApiOperation({
+        summary: 'Start Google OAuth (Passport)',
+        description: 'Redirects to Google consent. Needs GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Google OAuth' })
     @UseGuards(GoogleGuard)
     @Get('google')
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     googleAuth() {}
 
+    @ApiOperation({ summary: 'Google OAuth callback → redirect to success-google with provider token' })
+    @ApiResponse({ status: 302, description: 'Redirect to /api/auth/success-google?token=…' })
     @UseGuards(GoogleGuard)
     @Get('google/callback')
     googleAuthCallback(@Req() req: Request, @Res() res: Response) {
@@ -118,8 +143,13 @@ export class AuthController {
         return res.redirect(`http://localhost:8001/api/auth/success-google?token=${token}`);
     }
 
+    @ApiOperation({
+        summary: 'Finish Google OAuth; issues Market Hunter tokens',
+        description: 'Validates Google access token, upserts user (Provider.GOOGLE), sets refresh cookie.',
+    })
+    @ApiQuery({ name: 'token', required: true, description: 'Google OAuth access token from callback' })
+    @ApiCreatedResponse({ type: AccessTokenResponseDto })
     @Get('success-google')
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     successGoogle(@Query('token') token: string, @UserAgent() agent: string, @Res() res: Response) {
         return this.httpService.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${token}`).pipe(
             mergeMap(({ data: { email } }) => this.authService.providerAuth(email, agent, Provider.GOOGLE)),
@@ -128,11 +158,18 @@ export class AuthController {
         );
     }
 
+    @ApiOperation({
+        summary: 'Start Yandex OAuth (Passport)',
+        description: 'Redirects to Yandex consent. Needs YANDEX_APP_ID / YANDEX_APP_SECRET.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Yandex OAuth' })
     @UseGuards(YandexGuard)
     @Get('yandex')
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     yandexAuth() {}
 
+    @ApiOperation({ summary: 'Yandex OAuth callback → redirect to success-yandex with provider token' })
+    @ApiResponse({ status: 302, description: 'Redirect to /api/auth/success-yandex?token=…' })
     @UseGuards(YandexGuard)
     @Get('yandex/callback')
     yandexAuthCallback(@Req() req: Request, @Res() res: Response) {
@@ -140,8 +177,13 @@ export class AuthController {
         return res.redirect(`http://localhost:8001/api/auth/success-yandex?token=${token}`);
     }
 
+    @ApiOperation({
+        summary: 'Finish Yandex OAuth; issues Market Hunter tokens',
+        description: 'Loads Yandex profile, upserts user (Provider.YANDEX), sets refresh cookie.',
+    })
+    @ApiQuery({ name: 'token', required: true, description: 'Yandex OAuth token from callback' })
+    @ApiCreatedResponse({ type: AccessTokenResponseDto })
     @Get('success-yandex')
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     successYandex(@Query('token') token: string, @UserAgent() agent: string, @Res() res: Response) {
         return this.httpService.get(`https://login.yandex.ru/info?format=json&oauth_token=${token}`).pipe(
             mergeMap(({ data: { default_email } }) =>

@@ -40,3 +40,6 @@ jobs:
 
       - name: Typecheck
         run: yarn typecheck
+
+  # Docs/OpenAPI path asserts only need Nest boot + DB/Redis — run when services available locally via yarn test:e2e.
+  # CI stays lint/format/typecheck until a dedicated compose job is added.
