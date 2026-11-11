@@ -23,7 +23,7 @@ describe('Auth HTTP (e2e)', () => {
         await request(app.getHttpServer()).get('/api/docs').expect(200);
     });
 
-    it('GET /api/docs-json lists register/login/logout/refresh', async () => {
+    it('GET /api/docs-json lists register/login/logout/refresh + OAuth', async () => {
         const res = await request(app.getHttpServer()).get('/api/docs-json').expect(200);
         const paths = Object.keys(res.body.paths ?? {});
         const has = (suffix: string) => paths.some((p) => p === suffix || p.endsWith(suffix));
@@ -31,7 +31,17 @@ describe('Auth HTTP (e2e)', () => {
         expect(has('/auth/login')).toBe(true);
         expect(has('/auth/logout')).toBe(true);
         expect(has('/auth/refresh-tokens')).toBe(true);
+        expect(has('/auth/google')).toBe(true);
+        expect(has('/auth/google/callback')).toBe(true);
+        expect(has('/auth/success-google')).toBe(true);
+        expect(has('/auth/yandex')).toBe(true);
+        expect(has('/auth/yandex/callback')).toBe(true);
+        expect(has('/auth/success-yandex')).toBe(true);
         expect(has('/user/account')).toBe(true);
+
+        const schemas = res.body.components?.schemas ?? {};
+        expect(schemas.AccessTokenResponseDto || schemas.AccessTokenResponse).toBeTruthy();
+        expect(schemas.UserResponseDto || schemas.UserResponse).toBeTruthy();
     });
 
     it('GET /api/auth/refresh-tokens without cookie → 401', async () => {

@@ -1,8 +1,12 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Provider, Role, User } from '@prisma/client';
 import { Exclude } from 'class-transformer';
 
 export class UserResponse implements User {
+    @ApiProperty({ format: 'uuid' })
     id: string;
+
+    @ApiProperty({ example: 'user@market-hunter.local' })
     email: string;
 
     @Exclude()
@@ -17,7 +21,10 @@ export class UserResponse implements User {
     @Exclude()
     isBlocked: boolean;
 
+    @ApiProperty()
     updatedAt: Date;
+
+    @ApiProperty({ enum: Role, isArray: true })
     roles: Role[];
 
     constructor(user: User) {
