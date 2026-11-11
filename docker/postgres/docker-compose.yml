@@ -1,10 +1,11 @@
 # Auth Postgres + Redis for Market Hunter (dev).
-# Usage from auth/: yarn docker:up
+# Prefer root helper: ..\..\..\dev-docker.ps1 (reuses auth_redis; shared Postgres on :5432).
+# From auth/: yarn docker:redis  (Redis only)  |  yarn docker:up  (Redis + optional auth_postgres)
 #
 # Host ports must NOT collide with backend:
-#   backend Postgres → 5432 (backend/postgres/docker-compose.yml)
-#   auth Postgres    → 5433 (this file)
-#   auth Redis       → 6379
+#   shared/backend Postgres → 5432 (postgres_container)
+#   auth Postgres           → 5433 (this file, optional)
+#   auth Redis              → 6379
 services:
   postgres:
     container_name: auth_postgres
