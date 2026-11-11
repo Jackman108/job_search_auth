@@ -110,31 +110,34 @@ model Skill {
 }
 
 model VacancyAuth {
-  id        Int      @id @default(autoincrement())
-  email     String
-  password  String
-  userId    String   @map("user_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             Int              @id @default(autoincrement())
+  email          String
+  password       String
+  userId         String           @map("user_id")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  VacancySubmit  VacancySubmit[]
 
   @@map("vacancy_auth")
 }
 
 model VacancySubmit {
-  id           Int      @id @default(autoincrement())
-  userId       String   @map("user_id")
-  position     String
-  message      String
-  vacancyUrl   String   @map("vacancy_url")
-  schedule     String
-  orderBy      String   @map("order_by")
-  searchField  String   @map("search_field")
-  experience   String
-  searchPeriod String   @map("search_period")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            Int          @id @default(autoincrement())
+  userId        String       @map("user_id")
+  position      String
+  message       String
+  vacancyUrl    String       @map("vacancy_url")
+  schedule      String
+  orderBy       String       @map("order_by")
+  searchField   String       @map("search_field")
+  experience    String
+  searchPeriod  String       @map("search_period")
+  vacancyAuthId Int?         @map("vacancy_auth_id")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vacancyAuth   VacancyAuth? @relation(fields: [vacancyAuthId], references: [id], onDelete: SetNull)
 
   @@map("vacancy_submit")
 }
