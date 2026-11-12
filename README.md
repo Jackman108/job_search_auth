@@ -13,7 +13,8 @@ NestJS · Prisma · JWT · Google/Yandex OAuth · GraphQL (Apollo) · PostgreSQL
 - **JWT auth**: register / login / logout / refresh-tokens
 - **OAuth**: Google и Yandex (`/api/auth/google`, `/api/auth/yandex` + callbacks)
 - **Users**: REST `/api/user`
-- **Prisma**: User, Token, Profile, Resume (+ contacts / experience / skills), VacancyAuth/Submit, Payment, Subscription
+- **Prisma schema**: User, Token, Profile, Resume (+ contacts / experience / skills), VacancyAuth/Submit, Payment, Subscription  
+  (HTTP CRUD for vacancy auth/field lives on **backend** `/vacancy-auth` + `/vacancy-field`, not Nest controllers)
 
 ## GraphQL vs REST
 
@@ -29,30 +30,32 @@ NestJS · Prisma · JWT · Google/Yandex OAuth · GraphQL (Apollo) · PostgreSQL
 | Сервис | Порт |
 |--------|------|
 | Auth API | `APP_PORT` → **8001** |
-| Auth Postgres | **5433** → `db_test` (`yarn docker:up`) |
-| Auth Redis | **6379** (sessions) |
+| Shared Postgres | **5432** → DB `job_search` (`job_search_postgres`) |
+| Auth Redis | **6379** (`job_search_redis`, sessions) |
+| Optional auth Postgres | **5433** → `db_test` (profile `auth-db`) |
 | Client | 3000 |
 | Backend API / WS | 8000 / 8080 |
 
-Полный подъём стека: корневой [`docs/DEV_SETUP.md`](../docs/DEV_SETUP.md).
+Полный подъём стека: корневой [`docs/DEV_SETUP.md`](../docs/DEV_SETUP.md) · infra `.\dev-docker.ps1`.
 
 ## Установка
 
 ```bash
 yarn install
-cp .env.example .env   # заполнить JWT, OAuth, DATABASE_URL, APP_PORT, ALLOWED_ORIGIN
+cp .env.example .env   # shared 5432/job_search + JWT matching backend
 yarn prisma generate
 yarn start:dev
 ```
 
-DB + Redis (compose в `docker/postgres`): Postgres **5433**, Redis **6379**.
-Не занимает backend-порт **5432**.
+DB + Redis (root `docker/docker-compose.yml` via `.\dev-docker.ps1`):
+Postgres **5432** / `job_search`, Redis **6379**.
 
 ```bash
-yarn docker:up
-# DATABASE_URL=postgresql://postgres:123456@localhost:5433/db_test?schema=public
+# from job_search root
+.\dev-docker.ps1
+# DATABASE_URL=postgresql://postgres:password@localhost:5432/job_search?schema=public
 # REDIS_URI=redis://localhost:6379
-yarn prisma migrate deploy   # или migrate dev — на чистой db_test
+yarn prisma migrate deploy
 ```
 
 ## Scripts
