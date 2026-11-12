@@ -1,10 +1,10 @@
-# Auth Postgres + Redis for Market Hunter (dev).
-# Usage from auth/: yarn docker:up
+# DEPRECATED for day-to-day use.
+# Prefer repo-root: docker/docker-compose.yml via .\dev-docker.ps1
+# (job_search_postgres :5432 + job_search_redis :6379).
 #
-# Host ports must NOT collide with backend:
-#   backend Postgres → 5432 (backend/postgres/docker-compose.yml)
-#   auth Postgres    → 5433 (this file)
-#   auth Redis       → 6379
+# Optional isolated auth DB remains available as auth_postgres :5433
+# (root compose profile: auth-db) or `yarn docker:up` here.
+
 services:
   postgres:
     container_name: auth_postgres
@@ -17,28 +17,32 @@ services:
       - auth_postgres_data:/var/lib/postgresql/data
       - ./postgres/install-uuid.sql:/docker-entrypoint-initdb.d/01-install-uuid.sql:ro
     ports:
-      - "${DB_PORT:-5433}:5432"
+      - '${DB_PORT:-5433}:5432'
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-db_test}"]
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-db_test}',
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
 
   redis:
-    container_name: auth_redis
+    container_name: job_search_redis
     image: redis:7-alpine
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - '${REDIS_PORT:-6379}:6379'
     volumes:
-      - auth_redis_data:/data
+      - job_search_redis_data:/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       timeout: 5s
       retries: 10
 
 volumes:
   auth_postgres_data:
-  auth_redis_data:
+  job_search_redis_data:
